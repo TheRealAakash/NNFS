@@ -6,47 +6,64 @@ from Layers import *
 from Loss import *
 from Optimizers import *
 
-nnfs.init()
 
-X, y = spiral_data(samples=100, classes=3)
+class Network:
+    def __init__(self, optimizer):
+        self.layers = []
+        self.optimizer = optimizer
+        self.lastLayer = None
 
-dense1 = LayerDense(2, 64)
-activation1 = ActivationReLU()
-dense2 = LayerDense(64, 3)
+    def addDense(self, n_outputs, n_inputs=None):
+        if self.lastLayer is None:
+            self.lastLayer = LayerDense(n_inputs, n_outputs)
+        else:
+            self.lastLayer = LayerDense(self.lastLayer.n_neurons, n_outputs)
+        self.layers.append(self.lastLayer)
 
-loss_activation = ActivationSoftmaxLossCategoricalCrossentropy()
+    def addActivation(self, activationFunction):
+        self.layers.append(activationFunction())
 
-# optimizer = OptimizerSGD(learning_rate=1, decay=1e-3, momentum=0.9)
-optimizer = OptimizerAdaGrad(learning_rate=1, decay=1e-4)
+    def setLoss(self, lossFunction):
+        self.loss = lossFunction
 
-N_EPOCHS = 10001
+    def setOptimizer(self, optimizer):
+        self.optimizer = optimizer
 
-for epoch in range(N_EPOCHS):
-    # Forward pass
-    dense1.forward(X)
-    activation1.forward(dense1.output)
-    dense2.forward(activation1.output)
-    loss = loss_activation.forward(dense2.output, y)
+    def trainEpoch(self, X, y):
+        for layer in self.layers:
+            out = layer.forward(X)
+            X = layer.output
+        loss = self.loss.forward(X, y)
 
-    # print("Loss:", loss)
+        self.loss.backward(self.loss.output, y)
+        dinputs = self.loss.dinputs
+        for layer in reversed(self.layers):
+            layer.backward(dinputs)
+            dinputs = layer.dinputs
 
-    predictions = np.argmax(loss_activation.output, axis=1)
-    if len(y.shape) == 2:
-        y = np.argmax(y, axis=1)
-    accuracy = np.mean(predictions == y)
-    if not epoch % 100:
-        print(f"Epoch: {epoch}\n"
-              + f"Accuracy: {accuracy:.3f}\n"
-              + f"Loss: {loss:.3f}\n"
-                f"Learning Rate: {optimizer.current_learning_rate}\n")
+        self.optimizer.pre_update_params()
+        for layer in self.layers:
+            if type(layer) == LayerDense:
+                self.optimizer.update_params(layer)
+        self.optimizer.post_update_params()
 
-    # Backward pass
-    loss_activation.backward(loss_activation.output, y)
-    dense2.backward(loss_activation.dinputs)
-    activation1.backward(dense2.dinputs)
-    dense1.backward(activation1.dinputs)
+        predictions = np.argmax(self.loss.output, axis=1)
+        if len(y.shape) == 2:
+            y = np.argmax(y, axis=1)
+        accuracy = np.mean(predictions == y)
+        return loss, accuracy
 
-    optimizer.pre_update_params()
-    optimizer.update_params(dense1)
-    optimizer.update_params(dense2)
-    optimizer.post_update_params()
+    def train(self, X, y, n_epochs, print_every=100):
+        for epoch in range(n_epochs):
+            loss, accuracy = self.trainEpoch(X, y)
+            if not epoch % print_every:
+                print(f"Epoch: {epoch}\n"
+                      + f"Accuracy: {accuracy:.3f}\n"
+                      + f"Loss: {loss:.3f}\n"
+                      + f"Learning Rate: {self.optimizer.current_learning_rate}\n")
+
+    def predict(self, X):
+        for layer in self.layers:
+            X = layer.forward(X)
+        self.loss.activation.forward(X)
+        return self.loss.activation.output
