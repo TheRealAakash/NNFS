@@ -4,12 +4,9 @@ from functionDatasets import mandelbrot
 from Activations import *
 from Optimizers import *
 from network import Network
-import sklearn
-import keras
 
 nnfs.init()
 X, y = mandelbrot(numSamples=1000)
-X, y = sklearn.utils.shuffle(X, y)
 network = Network(optimizer=OptimizerAdam(learning_rate=0.02, decay=5e-7))
 network.addDense(64, 2)
 network.addActivation(ActivationReLU)
