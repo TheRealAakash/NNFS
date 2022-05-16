@@ -5,6 +5,7 @@ from Activations import *
 from Layers import *
 from Loss import *
 from Optimizers import *
+import matplotlib.pyplot as plt
 
 
 class Network:
@@ -12,6 +13,10 @@ class Network:
         self.layers = []
         self.optimizer = optimizer
         self.lastLayer = None
+        self.epochs = 0
+
+        self.losses = []
+        self.accuracies = []
 
     def addDense(self, n_outputs, n_inputs=None):
         if self.lastLayer is None:
@@ -53,17 +58,27 @@ class Network:
         accuracy = np.mean(predictions == y)
         return loss, accuracy
 
-    def train(self, X, y, n_epochs, print_every=100):
+    def train(self, X, y, n_epochs, print_every=100, printOut=True):
         for epoch in range(n_epochs):
+            self.epochs += 1
             loss, accuracy = self.trainEpoch(X, y)
-            if not epoch % print_every:
-                print(f"Epoch: {epoch}\n"
+            self.losses.append(loss)
+            self.accuracies.append(accuracy)
+            if not self.epochs % print_every and printOut:
+                print(f"Epoch: {self.epochs}\n"
                       + f"Accuracy: {accuracy:.3f}\n"
                       + f"Loss: {loss:.3f}\n"
                       + f"Learning Rate: {self.optimizer.current_learning_rate}\n")
+            #  plt.clf()
+            # plt.scatter(range(1, self.epochs + 1), self.losses, color='red')
+            # plt.plot(range(1, self.epochs + 1), self.losses, color='red')
+            #  plt.scatter(self.epochs, accuracy, color='green')
+            # plt.draw()
+            #  plt.pause(0.001)
 
     def predict(self, X):
         for layer in self.layers:
-            X = layer.forward(X)
+            layer.forward(X)
+            X = layer.output
         self.loss.activation.forward(X)
         return self.loss.activation.output
