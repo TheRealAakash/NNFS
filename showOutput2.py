@@ -7,16 +7,10 @@ from network import Network
 
 nnfs.init()
 X, y = mandelbrot(numSamples=1000)
-network = Network(optimizer=OptimizerAdam(learning_rate=0.02, decay=5e-7))
+network = Network(optimizer=OptimizerAdam(learning_rate=0.05, decay=5e-6))
 network.addDense(64, 2)
 network.addActivation(ActivationReLU)
 network.addDense(128)
-network.addActivation(ActivationReLU)
-network.addDense(256)
-network.addActivation(ActivationReLU)
-network.addDense(512)
-network.addActivation(ActivationReLU)
-network.addDense(256)
 network.addActivation(ActivationReLU)
 network.addDense(128)
 network.addActivation(ActivationReLU)
@@ -36,7 +30,7 @@ X_test = np.array([[c1, c2] for c1 in X_test for c2 in X_test])
 vidout = cv2.VideoWriter('output.avi', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 60, (SIZE * 3, SIZE * 3))
 
 while True:
-    X, y = mandelbrot(numSamples=1024)
+    X, y = mandelbrot(numSamples=8000)
     network.train(X, y, n_epochs=1, graphEvery=25, print_every=100)
     if network.epochs % 50:
         continue
