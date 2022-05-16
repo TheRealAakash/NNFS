@@ -27,8 +27,8 @@ def mandelbrot(numSamples):
 
 def test():
     import matplotlib.pyplot as plt
-    X, y = mandelbrot(10000)
-    plt.scatter(X[:, 0], X[:, 1], s=1, c=y)
+    X, y = mandelbrot(100000)
+    plt.scatter(X[:, 0], X[:, 1], s=1, c=np.argmax(y, axis=1))
     plt.show()
 
 

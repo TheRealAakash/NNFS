@@ -12,6 +12,14 @@ network.addDense(64, 2)
 network.addActivation(ActivationReLU)
 network.addDense(128)
 network.addActivation(ActivationReLU)
+network.addDense(256)
+network.addActivation(ActivationReLU)
+network.addDense(512)
+network.addActivation(ActivationReLU)
+network.addDense(256)
+network.addActivation(ActivationReLU)
+network.addDense(128)
+network.addActivation(ActivationReLU)
 network.addDense(64)
 network.addActivation(ActivationReLU)
 network.addDense(2)
@@ -28,9 +36,11 @@ X_test = np.array([[c1, c2] for c1 in X_test for c2 in X_test])
 vidout = cv2.VideoWriter('output.avi', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 60, (SIZE * 3, SIZE * 3))
 
 while True:
-    X, y = mandelbrot(numSamples=512)
-    image = np.zeros((SIZE, SIZE, 3))
+    X, y = mandelbrot(numSamples=1024)
     network.train(X, y, n_epochs=1, graphEvery=25, print_every=100)
+    if network.epochs % 50:
+        continue
+    image = np.zeros((SIZE, SIZE, 3))
     out = network.predict(X_test)
     for i in range(len(X_test)):
         x = X_test[i, 0]
