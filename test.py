@@ -1,22 +1,64 @@
-import matplotlib.pyplot as plt
-import numpy as np
-import matplotlib.animation as animation
+V = 5
 
-def main():
-    numframes = 100
-    numpoints = 10
-    color_data = np.random.random((numframes, numpoints))
-    x, y, c = np.random.random((3, numpoints))
 
-    fig = plt.figure()
-    scat = plt.scatter(x, y, c=c, s=100)
+def DFS(graph, marked, n, vert, start, count):
+    # mark the vertex vert as visited
+    marked[vert] = True
 
-    ani = animation.FuncAnimation(fig, update_plot, frames=range(numframes),
-                                  fargs=(color_data, scat))
-    plt.show()
+    # if the path of length (n-1) is found
+    if n == 0:
 
-def update_plot(i, data, scat):
-    scat.set_array(data[i])
-    return scat,
+        # mark vert as un-visited to make
+        # it usable again.
+        marked[vert] = False
 
-main()
+        # Check if vertex vert can end with
+        # vertex start
+        if graph[vert][start] == 1:
+            count = count + 1
+            return count
+        else:
+            return count
+
+    # For searching every possible path of
+    # length (n-1)
+    for i in range(V):
+        if marked[i] == False and graph[vert][i] == 1:
+            # DFS for searching path by decreasing
+            # length by 1
+            count = DFS(graph, marked, n - 1, i, start, count)
+
+    # marking vert as unvisited to make it
+    # usable again.
+    marked[vert] = False
+    return count
+
+
+# Counts cycles of length
+# N in an undirected
+# and connected graph.
+def countCycles(graph, n):
+    # all vertex are marked un-visited initially.
+    marked = [False] * V
+
+    # Searching for cycle by using v-n+1 vertices
+    count = 0
+    for i in range(V - (n - 1)):
+        count = DFS(graph, marked, n - 1, i, i, count)
+
+        # ith vertex is marked as visited and
+        # will not be visited again.
+        marked[i] = True
+
+    return int(count / 2)
+
+
+# main :
+graph = [[0, 1, 1, 1, 1],
+         [1, 0, 1, 1, 0],
+         [0, 0, 0, 1, 0],
+         [0, 1, 0, 0, 1],
+         [1, 0, 0, 0, 0]]
+
+n = 7
+print("Total cycles of length ", n, " are ", countCycles(graph, n))

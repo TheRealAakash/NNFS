@@ -58,9 +58,10 @@ class Network:
         accuracy = np.mean(predictions == y)
         return loss, accuracy
 
-    def train(self, X, y, n_epochs, print_every=100, printOut=True):
+    def train(self, X, y, n_epochs, print_every=100, graphEvery=10, printOut=True):
         for epoch in range(n_epochs):
             self.epochs += 1
+
             loss, accuracy = self.trainEpoch(X, y)
             self.losses.append(loss)
             self.accuracies.append(accuracy)
@@ -69,12 +70,13 @@ class Network:
                       + f"Accuracy: {accuracy:.3f}\n"
                       + f"Loss: {loss:.3f}\n"
                       + f"Learning Rate: {self.optimizer.current_learning_rate}\n")
-            #  plt.clf()
-            # plt.scatter(range(1, self.epochs + 1), self.losses, color='red')
-            # plt.plot(range(1, self.epochs + 1), self.losses, color='red')
-            #  plt.scatter(self.epochs, accuracy, color='green')
-            # plt.draw()
-            #  plt.pause(0.001)
+            if self.epochs % graphEvery == 0:
+                plt.clf()
+                # plt.scatter(range(1, self.epochs + 1), self.losses, color='red')
+                plt.plot(range(1, self.epochs + 1), self.losses, color='red')
+                plt.plot(range(1, self.epochs + 1), self.accuracies, color='green')
+                plt.draw()
+                plt.pause(0.00001)
 
     def predict(self, X):
         for layer in self.layers:
