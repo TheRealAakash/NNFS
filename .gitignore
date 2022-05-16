@@ -1,3 +1,6 @@
 *.xml
 *.iml
 *.gitignore
+*.mp4
+*.avi
+mandelbrotnn/
