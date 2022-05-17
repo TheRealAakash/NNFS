@@ -30,6 +30,24 @@ class ActivationSoftmax:
             self.dinputs[index] = np.dot(jacobian_matrix, single_dvalues)
 
 
+class ActivationSigmoid:
+    def forward(self, inputs):
+        self.inputs = inputs
+        self.output = 1 / (1 + np.exp(-inputs))
+
+    def backward(self, dvalues):
+        self.dinputs = dvalues * (1 - self.output) * self.output
+
+
+class ActivationLinear:
+    def forward(self, inputs):
+        self.inputs = inputs
+        self.output = inputs
+
+    def backward(self, dvalues):
+        self.dinputs = dvalues.copy()
+
+
 class ActivationSoftmaxLossCategoricalCrossentropy:
     def __init__(self):
         self.activation = ActivationSoftmax()

@@ -1,10 +1,10 @@
 import numpy as np
 import nnfs
 from nnfs.datasets import spiral_data
-from Activations import *
-from Layers import *
-from Loss import *
-from Optimizers import *
+from .Activations import *
+from .Layers import *
+from .Loss import *
+from .Optimizers import *
 import matplotlib.pyplot as plt
 
 
@@ -18,15 +18,18 @@ class Network:
         self.losses = []
         self.accuracies = []
 
-    def addDense(self, n_outputs, n_inputs=None):
+    def addDense(self, n_outputs, n_inputs=None, weight_regularizer_l1=0, weight_regularizer_l2=0, bias_regularizer_l1=0, bias_regularizer_l2=0):
         if self.lastLayer is None:
-            self.lastLayer = LayerDense(n_inputs, n_outputs)
+            self.lastLayer = LayerDense(n_inputs, n_outputs, weight_regularizer_l1, weight_regularizer_l2, bias_regularizer_l1, bias_regularizer_l2)
         else:
-            self.lastLayer = LayerDense(self.lastLayer.n_neurons, n_outputs)
+            self.lastLayer = LayerDense(self.lastLayer.n_neurons, n_outputs, weight_regularizer_l1, weight_regularizer_l2, bias_regularizer_l1, bias_regularizer_l2)
         self.layers.append(self.lastLayer)
 
     def addActivation(self, activationFunction):
         self.layers.append(activationFunction())
+
+    def addDropout(self, dropout):
+        self.layers.append(LayerDropout(dropout))
 
     def setLoss(self, lossFunction):
         self.loss = lossFunction
@@ -39,6 +42,9 @@ class Network:
             out = layer.forward(X)
             X = layer.output
         loss = self.loss.forward(X, y)
+        for layer in self.layers:
+            if isinstance(layer, LayerDense):
+                loss += self.loss.loss.regularization_loss(layer)
 
         self.loss.backward(self.loss.output, y)
         dinputs = self.loss.dinputs

@@ -1,11 +1,11 @@
 import numpy as np
 import nnfs
 from nnfs.datasets import spiral_data
-from Activations import *
-from Layers import *
-from Loss import *
-from Optimizers import *
-from network import Network
+from Network.Activations import *
+from Network.Layers import *
+from Network.Loss import *
+from Network.Optimizers import *
+from Network.network import Network
 
 nnfs.init()
 
