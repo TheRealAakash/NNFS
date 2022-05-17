@@ -3,7 +3,7 @@ import nnfs
 from nnfs.datasets import spiral_data
 from Network.Activations import *
 from Network.Layers import *
-from Network.Loss import *
+from Network.Losses import *
 from Network.Optimizers import *
 from Network.network import Network
 

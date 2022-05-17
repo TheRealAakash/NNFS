@@ -2,31 +2,36 @@ import numpy as np
 
 
 class Loss:
-    def regularization_loss(self, layer):
+
+    def regularization_loss(self):
         regularization_loss = 0
+        for layer in self.trainable_layers:
+            if layer.weight_regularizer_l1 > 0:
+                regularization_loss += layer.weight_regularizer_l1 * np.sum(np.abs(layer.weights))
 
-        if layer.weight_regularizer_l1 > 0:
-            regularization_loss += layer.weight_regularizer_l1 * np.sum(np.abs(layer.weights))
+            if layer.weight_regularizer_l2 > 0:
+                regularization_loss += layer.weight_regularizer_l2 * np.sum(layer.weights * layer.weights)
 
-        if layer.weight_regularizer_l2 > 0:
-            regularization_loss += layer.weight_regularizer_l2 * np.sum(layer.weights * layer.weights)
+            if layer.bias_regularizer_l1 > 0:
+                regularization_loss += layer.bias_regularizer_l1 * np.sum(np.abs(layer.biases))
 
-        if layer.bias_regularizer_l1 > 0:
-            regularization_loss += layer.bias_regularizer_l1 * np.sum(np.abs(layer.biases))
-
-        if layer.bias_regularizer_l2 > 0:
-            regularization_loss += layer.bias_regularizer_l2 * np.sum(layer.biases * layer.biases)
+            if layer.bias_regularizer_l2 > 0:
+                regularization_loss += layer.bias_regularizer_l2 * np.sum(layer.biases * layer.biases)
         return regularization_loss
 
-    def calculate(self, output, y):
+    def remember_trainable_layers(self, trainable_layers):
+        self.trainable_layers = trainable_layers
+
+    def calculate(self, output, y, *, include_regularization=False):
         sample_losses = self.forward(output, y)
 
         data_loss = np.mean(sample_losses)
-
-        return data_loss
+        if not include_regularization:
+            return data_loss
+        return data_loss, self.regularization_loss()
 
     def forward(self, output, y):
-        return LossCategoricalCrossentropy().forward(output, y)
+        raise Exception("Not Implemented")
 
 
 class LossCategoricalCrossentropy(Loss):
@@ -60,6 +65,19 @@ class LossCategoricalCrossentropy(Loss):
             y_true = np.eye(labels)[y_true]
 
         self.dinputs = -y_true / dvalues
+        self.dinputs = self.dinputs / samples
+
+
+class ActivationSoftmaxLossCategoricalCrossentropy:
+
+    def backward(self, dvalues, y_true):
+        samples = len(dvalues)
+
+        if len(y_true.shape) == 2:
+            y_true = np.argmax(y_true, axis=1)
+
+        self.dinputs = dvalues.copy()
+        self.dinputs[range(samples), y_true] -= 1
         self.dinputs = self.dinputs / samples
 
 

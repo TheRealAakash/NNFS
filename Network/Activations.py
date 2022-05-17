@@ -1,10 +1,10 @@
 import numpy as np
-from .Loss import *
+from .Losses import *
 from inspect import signature
 
 
 class ActivationReLU:
-    def forward(self, inputs):
+    def forward(self, inputs, training):
         self.inputs = inputs
         self.output = np.maximum(0, inputs)
 
@@ -13,9 +13,12 @@ class ActivationReLU:
 
         self.dinputs[self.inputs <= 0] = 0
 
+    def predictions(self, outputs):
+        return outputs
+
 
 class ActivationSoftmax:
-    def forward(self, inputs):
+    def forward(self, inputs, training):
         self.inputs = inputs
         exp_values = np.exp(inputs - np.max(inputs, axis=1, keepdims=True))
         probabilities = exp_values / np.sum(exp_values, axis=1, keepdims=True)
@@ -29,42 +32,31 @@ class ActivationSoftmax:
             jacobian_matrix = np.diagflat(single_output) - np.dot(single_output, single_output.T)
             self.dinputs[index] = np.dot(jacobian_matrix, single_dvalues)
 
+    def predictions(self, outputs):
+        return np.argmax(outputs, axis=1)
+
 
 class ActivationSigmoid:
-    def forward(self, inputs):
+    def forward(self, inputs, training):
         self.inputs = inputs
         self.output = 1 / (1 + np.exp(-inputs))
 
     def backward(self, dvalues):
         self.dinputs = dvalues * (1 - self.output) * self.output
 
+    def predictions(self, outputs):
+        return (outputs > 0.5) * 1
+
 
 class ActivationLinear:
-    def forward(self, inputs):
+    def forward(self, inputs, training):
         self.inputs = inputs
         self.output = inputs
 
     def backward(self, dvalues):
         self.dinputs = dvalues.copy()
 
+    def predictions(self, outputs):
+        return outputs
 
-class ActivationSoftmaxLossCategoricalCrossentropy:
-    def __init__(self):
-        self.activation = ActivationSoftmax()
-        self.loss = LossCategoricalCrossentropy()
 
-    def forward(self, inputs, y_true):
-        self.activation.forward(inputs)
-        self.output = self.activation.output
-
-        return self.loss.calculate(self.output, y_true)
-
-    def backward(self, dvalues, y_true):
-        samples = len(dvalues)
-
-        if len(y_true.shape) == 2:
-            y_true = np.argmax(y_true, axis=1)
-
-        self.dinputs = dvalues.copy()
-        self.dinputs[range(samples), y_true] -= 1
-        self.dinputs = self.dinputs / samples

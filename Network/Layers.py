@@ -1,11 +1,16 @@
 import numpy as np
 
 
+class LayerInput:
+    def forward(self, inputs, training):
+        self.output = inputs
+
+
 class LayerDense:
     def __init__(self, n_inputs, n_neurons, weight_regularizer_l1=0, weight_regularizer_l2=0, bias_regularizer_l1=0, bias_regularizer_l2=0):
         self.n_inputs = n_inputs
         self.n_neurons = n_neurons
-        self.weights = 0.1 * np.random.randn(n_inputs, n_neurons)
+        self.weights = 0.01 * np.random.randn(n_inputs, n_neurons)
         self.biases = np.zeros((1, n_neurons))
 
         self.weight_regularizer_l1 = weight_regularizer_l1
@@ -13,7 +18,7 @@ class LayerDense:
         self.bias_regularizer_l1 = bias_regularizer_l1
         self.bias_regularizer_l2 = bias_regularizer_l2
 
-    def forward(self, inputs):
+    def forward(self, inputs, training):
         self.inputs = inputs
         self.output = np.dot(inputs, self.weights) + self.biases
 
@@ -44,8 +49,12 @@ class LayerDropout:
     def __init__(self, rate):
         self.rate = 1 - rate
 
-    def forward(self, inputs):
+    def forward(self, inputs, training):
         self.inputs = inputs
+        if not training:
+            self.output = inputs.copy()
+            return
+
         self.binary_mask = np.random.binomial(1, self.rate, size=inputs.shape) / self.rate
 
         self.output = inputs * self.binary_mask
