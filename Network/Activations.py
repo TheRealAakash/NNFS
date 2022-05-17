@@ -1,5 +1,5 @@
 import numpy as np
-from Loss import *
+from .Loss import *
 from inspect import signature
 
 

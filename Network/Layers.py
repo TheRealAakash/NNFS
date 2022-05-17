@@ -30,6 +30,25 @@ class LayerDense:
             self.dweights += 2 * self.weight_regularizer_l2 * self.weights
 
         if self.bias_regularizer_l1 > 0:
+            dL1 = np.ones_line(self.biases)
+            dL1[self.biases < 0] = -1
+            self.dbiases += self.bias_regularizer_l1 * dL1
 
+        if self.bias_regularizer_l2 > 0:
+            self.dbiases += 2 * self.bias_regularizer_l2 * self.biases
 
         self.dinputs = np.dot(dvalues, self.weights.T)
+
+
+class LayerDropout:
+    def __init__(self, rate):
+        self.rate = 1 - rate
+
+    def forward(self, inputs):
+        self.inputs = inputs
+        self.binary_mask = np.random.binomial(1, self.rate, size=inputs.shape) / self.rate
+
+        self.output = inputs * self.binary_mask
+
+    def backward(self, dvalues):
+        self.dinputs = dvalues * self.binary_mask
