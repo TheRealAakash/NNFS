@@ -6,7 +6,9 @@ from nnfs.datasets import spiral_data
 
 from Network.Activations import *
 from Network.Optimizers import *
-from Network.network import Network
+from Network.Layers import *
+from Network.Accuracies import *
+from Network.BaseModel import Model
 import sklearn
 
 nnfs.init()
@@ -17,25 +19,28 @@ ident[2][0] = 1
 ident[2][1] = 1
 ident[2][2] = 0
 y_col = ident[y]
-network = Network(optimizer=OptimizerAdam(learning_rate=0.01, decay=5e-7))
-network.addDense(128, 2, weight_regularizer_l1=5e-4, bias_regularizer_l1=5e-4)
-network.addActivation(ActivationReLU)
-network.addDropout(0.1)
-network.addDense(3)
-network.setLoss(ActivationSoftmaxLossCategoricalCrossentropy())
 # network.train(X, y, n_epochs=100, print_every=100)
+
+model = Model()
+model.add(LayerDense(2, 128, weight_regularizer_l1=5e-4, bias_regularizer_l1=5e-4))
+model.add(ActivationReLU())
+model.add(LayerDropout(0.1))
+model.add(LayerDense(128, 3))
+model.add(ActivationSoftmax())
+model.set(loss=LossCategoricalCrossentropy(), optimizer=OptimizerAdam(learning_rate=0.05, decay=5e-7), accuracy=AccuracyCategorical())
+model.finalize()
 
 SIZE = 300
 minX = -1
 maxX = 1
 minY = -1
 maxY = 1
-SCALE_FACTOR = 4
+SCALE_FACTOR = 3
 X_test = np.linspace(-1, 1, SIZE)
 X_test = np.array([[c1, c2] for c1 in X_test for c2 in X_test])
-vidout = cv2.VideoWriter(f'Videos/output{int(time.time())}.avi', cv2.VideoWriter_fourcc(*"XVID"), 60, (SIZE * SCALE_FACTOR, SIZE * SCALE_FACTOR))
+vidout = cv2.VideoWriter(f'Videos/output{int(time.time())}.mp4', cv2.VideoWriter_fourcc(*"H264"), 60, (SIZE * SCALE_FACTOR, SIZE * SCALE_FACTOR))
 
-batchSize = 16
+batchSize = 128
 print(X.shape)
 X = list(X)
 batchX = []
@@ -49,8 +54,8 @@ for i in range(0, len(y), batchSize):
 while True:
     for x_batch, y_batch in zip(batchX, batchY):
         image = np.zeros((SIZE, SIZE, 3))
-        network.train(x_batch, y_batch, n_epochs=1, print_every=100, graphEvery=100000)
-        out = network.predict(X_test) ** 0.3
+        model.train(x_batch, y_batch, epochs=1, print_every=100)
+        out = model.predict(X_test) ** 0.3
         for i in range(len(X_test)):
             x = X_test[i, 0]
             y_c = X_test[i, 1]
@@ -79,13 +84,15 @@ while True:
         image = cv2.resize(image, (SIZE * SCALE_FACTOR, SIZE * SCALE_FACTOR), interpolation=cv2.INTER_NEAREST)
         image2 = np.array(image * 255, np.uint8)
         vidout.write(image2)
-        cv2.imshow("image", image)
+        cv2.imshow("image", image2)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 vidout.release()
 cv2.destroyAllWindows()
+cv2.waitKey(1)
+print("Done")
 # plt.scatter(X_test[:, 0], X_test[:, 1], c=out)
 # plt.scatter(X[:, 0], X[:, 1], c=y)
 # plt.show()

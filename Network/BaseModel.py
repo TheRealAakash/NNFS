@@ -10,6 +10,7 @@ class Model:
         self.trainable_layers = []
         self.finalized = False
         self.softmax_classifier_output = None
+        self.epochs = 0
 
     def add(self, layer):
         self.finalized = False
@@ -76,6 +77,7 @@ class Model:
             raise Exception("Model must be finalized before training")  # Can auto finalize, but may cause issues
         self.accuracy.init(y)
         for epoch in range(1, epochs + 1):
+            self.epochs += 1
             output = self.forward(X, training=True)
             data_loss, regularization_loss = self.loss.calculate(output, y, include_regularization=True)
 
@@ -93,9 +95,9 @@ class Model:
 
             self.optimizer.post_update_params()
 
-            if not epoch % print_every:
+            if not self.epochs % print_every:
                 print(
-                    f"Epoch: {epoch}\n" +
+                    f"Epoch: {self.epochs}\n" +
                     f"Accuracy: {accuracy:.3f}\n" +
                     f"Loss: {loss:.3f}\n" +
                     f"\tData Loss: {data_loss:.3f}\n" +
@@ -116,3 +118,11 @@ class Model:
                 f"Validation Accuracy: {val_accuracy:.3f}\n" +
                 f"Validation Loss: {val_loss:.3f}\n"
             )
+
+    def predict(self, X):
+        output = self.forward(X, training=False)
+        return output
+
+    def predictProcessed(self, X):
+        output = self.forward(X, training=False)
+        return self.output_layer_activation.predictions(output)
