@@ -22,7 +22,10 @@ y_col = ident[y]
 # network.train(X, y, n_epochs=100, print_every=100)
 
 model = Model()
-model.add(LayerDense(2, 128, weight_regularizer_l1=5e-4, bias_regularizer_l1=5e-4))
+model.add(LayerDense(2, 64, weight_regularizer_l2=5e-4, bias_regularizer_l2=5e-4))
+model.add(ActivationReLU())
+model.add(LayerDropout(0.1))
+model.add(LayerDense(64, 128, weight_regularizer_l2=5e-4, bias_regularizer_l2=5e-4))
 model.add(ActivationReLU())
 model.add(LayerDropout(0.1))
 model.add(LayerDense(128, 3))
@@ -38,9 +41,9 @@ maxY = 1
 SCALE_FACTOR = 3
 X_test = np.linspace(-1, 1, SIZE)
 X_test = np.array([[c1, c2] for c1 in X_test for c2 in X_test])
-vidout = cv2.VideoWriter(f'Videos/output{int(time.time())}.mp4', cv2.VideoWriter_fourcc(*"H264"), 60, (SIZE * SCALE_FACTOR, SIZE * SCALE_FACTOR))
+vidout = cv2.VideoWriter(f'Videos/output{int(time.time())}.mp4', cv2.VideoWriter_fourcc(*"H265"), 30, (SIZE * SCALE_FACTOR, SIZE * SCALE_FACTOR))
 
-batchSize = 128
+batchSize = 3000
 print(X.shape)
 X = list(X)
 batchX = []
@@ -72,12 +75,12 @@ while True:
             x = int(x) - 1
             y_c = int(y_c) - 1
             image[y_c, x] = col
-        for point, col in zip(x_batch, y_batch):
-            x = (point[0] - minX) / (maxX - minX) * SIZE
-            y_c = (point[1] - minY) / (maxY - minY) * SIZE
-            x = int(x) - 1
-            y_c = int(y_c) - 1
-            image[y_c, x] = (1, 1, 1)
+        # for point, col in zip(x_batch, y_batch):
+        #     x = (point[0] - minX) / (maxX - minX) * SIZE
+        #     y_c = (point[1] - minY) / (maxY - minY) * SIZE
+        #     x = int(x) - 1
+        #     y_c = int(y_c) - 1
+        #     image[y_c, x] = (1, 1, 1)
         # cv2.circle(image, (x, y_c), 1, (int(col[0]), int(col[1]), int(col[2])), -1)
         # crop image to remove black borders
         image = image[2:-2, 2:-2]
