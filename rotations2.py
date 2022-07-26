@@ -61,10 +61,12 @@ class Rotation(ThreeDScene):
             anims0.append(Create(intersectionLine))
             anims.append(Rotate(intersectionLine, angle=2 * PI, axis=tanLine.get_vector(), about_point=tanLine.get_start(), rate_func=linear))
             count = 50
+            self.add(intersectionLine)
             for i in tqdm.tqdm(range(count)):
-                anims.append(Create(intersectionLine.copy().rotate(360 * DEGREES * i / count, axis=tanLine.get_vector(), about_point=tanLine.get_start())))
+                self.add(intersectionLine.copy().rotate(360 * DEGREES * i / count, axis=tanLine.get_vector(), about_point=tanLine.get_start()))
             # anims.append(Rotate(intersectionLine, angle=2 * PI, axis=tanLine.get_vector(), about_point=tanLine.get_start(), rate_func=linear))
-        self.play(*anims0)
+        # self.play(*anims0)
         # for i in range(10):
-        self.play(*anims, run_time=5)
-        self.wait(1)
+        self.begin_ambient_camera_rotation(rate=0.2)
+       #  self.play(self.camera.rotate(2*PI, axis=UP, about_point=ORIGIN, rate_func=linear), run_time=5)
+        self.wait(10)
