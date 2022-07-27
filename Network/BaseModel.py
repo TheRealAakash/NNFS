@@ -11,6 +11,8 @@ class Model:
         self.finalized = False
         self.softmax_classifier_output = None
         self.epochs = 0
+        self.lossScore = 0
+        self.accuracyScore = 0
 
     def add(self, layer):
         self.finalized = False
@@ -82,10 +84,11 @@ class Model:
             data_loss, regularization_loss = self.loss.calculate(output, y, include_regularization=True)
 
             loss = data_loss + regularization_loss
-
+            self.lossScore = loss
             predictions = self.output_layer_activation.predictions(output)
 
             accuracy = self.accuracy.calculate(predictions, y)
+            self.accuracyScore = accuracy
 
             self.backward(output, y)
 
