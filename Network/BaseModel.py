@@ -4,6 +4,16 @@ from .Losses import *
 from .Layers import *
 
 
+class History:
+    def __init__(self):
+        self.losses = []
+        self.accuracies = []
+
+    def step(self, loss, accuracy):
+        self.losses.append(loss)
+        self.accuracies.append(accuracy)
+
+
 class Model:
     def __init__(self):
         self.layers = []
@@ -11,8 +21,8 @@ class Model:
         self.finalized = False
         self.softmax_classifier_output = None
         self.epochs = 0
-        self.lossScore = 0
-        self.accuracyScore = 0
+        self.history = History()
+        self.historyVal = History()
 
     def add(self, layer):
         self.finalized = False
@@ -84,11 +94,10 @@ class Model:
             data_loss, regularization_loss = self.loss.calculate(output, y, include_regularization=True)
 
             loss = data_loss + regularization_loss
-            self.lossScore = loss
             predictions = self.output_layer_activation.predictions(output)
 
             accuracy = self.accuracy.calculate(predictions, y)
-            self.accuracyScore = accuracy
+            self.history.step(loss, accuracy)
 
             self.backward(output, y)
 
@@ -116,6 +125,7 @@ class Model:
             val_predictions = self.output_layer_activation.predictions(output)
 
             val_accuracy = self.accuracy.calculate(val_predictions, y_val)
+            self.historyVal.step(val_loss, val_accuracy)
 
             print(
                 f"Validation Accuracy: {val_accuracy:.3f}\n" +

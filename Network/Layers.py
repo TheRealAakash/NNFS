@@ -7,7 +7,8 @@ class LayerInput:
 
 
 class LayerDense:
-    def __init__(self, n_inputs, n_neurons, weight_regularizer_l1=0, weight_regularizer_l2=0, bias_regularizer_l1=0, bias_regularizer_l2=0):
+    def __init__(self, n_inputs, n_neurons, weight_regularizer_l1=0, weight_regularizer_l2=0, bias_regularizer_l1=0,
+                 bias_regularizer_l2=0):
         self.n_inputs = n_inputs
         self.n_neurons = n_neurons
         self.weights = 0.01 * np.random.randn(n_inputs, n_neurons)
